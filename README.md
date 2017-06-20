@@ -5,7 +5,7 @@
 [![devDependencies Status](https://david-dm.org/ConnorWiseman/pga/dev-status.svg?style=flat-square)](https://david-dm.org/ConnorWiseman/pga?type=dev)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](https://github.com/ConnorWiseman/pga/blob/master/LICENSE)
 
-A convenience wrapper around the [pg-pool](https://github.com/brianc/node-pg-pool) module. Supports callbacks and Promises.
+A convenience wrapper around the [pg](https://github.com/brianc/node-postgres) module's [Pool object](https://github.com/brianc/node-pg-pool). Supports callbacks and Promises.
 
 
 ## Installation
