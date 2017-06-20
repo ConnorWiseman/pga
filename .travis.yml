@@ -6,6 +6,7 @@ services:
   - postgresql
 before_script:
   - psql -c 'CREATE DATABASE travis_ci_test;' -U postgres
+  - psql -d 'travis_ci_test' -U postgres -q -f 'test/setup.sql'
 script:
   - npm install
   - npm test
