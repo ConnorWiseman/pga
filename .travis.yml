@@ -9,4 +9,4 @@ before_script:
 script:
   - npm install
   - npm test
-- npm run report-coverage
+  - npm run report-coverage
