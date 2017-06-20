@@ -4,6 +4,8 @@ node_js:
   - "6.4.0"
 services:
   - postgresql
+before_script:
+  - psql -c 'CREATE DATABASE travis_ci_test;' -U postgres
 script:
   - npm install
   - npm test
