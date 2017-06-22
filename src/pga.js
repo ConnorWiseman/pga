@@ -12,87 +12,6 @@ const sequence = require('./sequence.js');
 
 
 /**
- * Obtains a client from the specified connection pool and executes a specified
- * callback function with the obtained client.
- * @param  {BoundPool} pool
- * @param  {Function}  callback
- * @private
- */
-function getClient(pool, callback) {
-  pool.connect((error, client, done) => {
-    if (error) {
-      done(client);
-      return callback(error, null, null);
-    }
-
-    callback(null, client, done);
-  });
-};
-
-
-/**
- * Using the specified connection pool, performs a specified query with
- * specified parameters, finally executing a specified callback function with
- * any error or result.
- * @param  {BoundPool} pool
- * @param  {String}    query
- * @param  {Array}     params
- * @param  {Function}  callback
- * @private
- */
-function callbackQuery(pool, query, params, callback) {
-  getClient(pool, (error, client, done) => {
-    client.query(query, params, (error, result) => {
-      done(error);
-
-      if (error) {
-        return callback(error, null);
-      }
-
-      callback(null, result);
-    });
-  });
-};
-
-
-/**
- * Wraps a callback-based query in a Promise object.
- * @param  {BoundPool} pool
- * @param  {String}    query
- * @param  {Array}     params
- * @return {Promise.<Array>}
- * @private
- */
-function promiseQuery(pool, query, params) {
-  return new Promise((resolve, reject) => {
-    callbackQuery(pool, query, params, (error, result) => {
-      if (error) {
-        return reject(error);
-      }
-
-      resolve(result);
-    });
-  });
-};
-
-
-/**
- * Rolls back any failed transaction.
- * @param  {Client}   client
- * @param  {Function} done
- * @param  {Error}    error
- * @param  {Function} callback
- * @private
- */
-function rollback(client, done, error, callback) {
-  client.query('ROLLBACK', rollbackError => {
-    done(rollbackError);
-    return callback(error || rollbackError, null);
-  });
-};
-
-
-/**
  * Using the specified connection pool, performs a series of specified queries
  * using any specified parameters in sequence, finally executing a specified
  * callback function with any error or result. Will automatically rollback the
@@ -102,8 +21,13 @@ function rollback(client, done, error, callback) {
  * @param  {Function}       callback
  * @private
  */
-function callbackTransact(pool, queries, callback) {
-  getClient(pool, (error, client, done) => {
+function performTransaction(pool, queries, callback) {
+  pool.connect((error, client, done) => {
+    if (error) {
+      done(client);
+      return callback(error, null, null);
+    }
+
     client.query('BEGIN', error => {
       if (error) {
         return rollback(client, done, error, callback);
@@ -131,26 +55,6 @@ function callbackTransact(pool, queries, callback) {
           return callback(null, results);
         });
       });
-    });
-  });
-};
-
-
-/**
- * Wraps a callback-based transaction in a Promise object.
- * @param  {BoundPool}      pool
- * @param  {Array.<Object>} queries
- * @return {Promise.<Array>}
- * @private
- */
-function promiseTransact(pool, queries) {
-  return new Promise((resolve, reject) => {
-    callbackTransact(pool, queries, (error, result) => {
-      if (error) {
-        return reject(error);
-      }
-
-      resolve(result);
     });
   });
 };
@@ -191,9 +95,7 @@ let PostgreSQLAdapter = module.exports = class PostgreSQLAdapter {
 
 
   /**
-   * Performs a basic query using the node-postgres library's parameterized
-   * queries. Placeholders are optional, and so is the callback function. If no
-   * callback is provided, #query will return a Promise object.
+   * Performs a basic query using the pg-pool module's #query method.
    * @param  {String}   query
    * @param  {Array}    [params]   Optional.
    * @param  {Function} [callback] Optional.
@@ -230,17 +132,7 @@ let PostgreSQLAdapter = module.exports = class PostgreSQLAdapter {
    *    });
    */
   query(query, params, callback) {
-    if (params && typeof params === 'function') {
-      return callbackQuery(this.pool, query, [], params);
-    } else if (!params) {
-      return promiseQuery(this.pool, query, []);
-    } else {
-      if (callback && typeof callback === 'function') {
-        return callbackQuery(this.pool, query, params, callback);
-      }
-
-      return promiseQuery(this.pool, query, params);
-    }
+    return this.pool.query.apply(this.pool, arguments);
   }
 
 
@@ -281,9 +173,17 @@ let PostgreSQLAdapter = module.exports = class PostgreSQLAdapter {
    */
   transact(queries, callback) {
     if (callback && typeof callback === 'function') {
-      return callbackTransact(this.pool, queries, callback);
+      return performTransaction(this.pool, queries, callback);
     }
 
-    return promiseTransact(this.pool, queries);
+    return new Promise((resolve, reject) => {
+      performTransaction(this.pool, queries, (error, result) => {
+        if (error) {
+          return reject(error);
+        }
+
+        resolve(result);
+      });
+    });
   }
 };
