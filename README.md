@@ -30,7 +30,20 @@ var db = pga({
 });
 ```
 
-### Regular Queries
+
+## API
+### &#35;close
+Closes the database connection. An alias for `Pool.end`.
+
+```javascript
+let db = pga(config);
+
+db.close();
+```
+
+
+### &#35;query
+Performs a single parameterized query.
 
 ```javascript
 // A regular query with a callback function.
@@ -49,15 +62,56 @@ db.query('SELECT * FROM test;').then(function(result) {
 });
 ```
 
-### Transactions
+
+### &#35;sql
+A template tagging function that returns an object compatible with `node-postgres`'s querying methods and, by extension, `pga`'s  `query` and `transact` methods. Template literal variable interpolation makes writing lengthy parameterized queries much cleaner.
+
+#### Query
+```javascript
+let db = pga(config);
+
+let id = 1;
+let query = db.sql`SELECT * FROM test WHERE id = ${id};`;
+
+db.query(query, function(error, result) {
+  if (error) {
+    return console.error(error);
+  }
+  console.log(results);
+});
+```
+
+#### Transaction
+```javascript
+let db = pga(config);
+
+let text = 'Hello, world!';
+let query = db.sql`INSERT INTO test(words) VALUES (${text});`;
+
+db.transact([
+  query,
+  query,
+  query,
+  query
+], function(error, result) {
+  if (error) {
+    return console.error(error);
+  }
+  console.log(results);
+});
+```
+
+
+### &#35;transact
+Performs a database transaction on an array of parameterized queries.
 
 ```javascript
 // A transaction with a callback function.
 db.transact([
-  { query: 'SELECT COUNT(*) FROM test;' },
-  { query: 'SELECT * FROM test WHERE id = $1::int;', params: [ 1 ] },
-  { query: 'INSERT INTO test (name) VALUES ($1:text);', params: [ 'Name!' ] },
-  { query: 'SELECT COUNT(*) FROM test;' }
+  { text: 'SELECT COUNT(*) FROM test;' },
+  { text: 'SELECT * FROM test WHERE id = $1::int;', values: [ 1 ] },
+  { text: 'INSERT INTO test (name) VALUES ($1:text);', values: [ 'Name!' ] },
+  { text: 'SELECT COUNT(*) FROM test;' }
 ], function(error, results) {
   if (error) {
     return console.error(error);
@@ -67,10 +121,10 @@ db.transact([
 
 // A transaction with a Promise object.
 db.transact([
-  { query: 'SELECT COUNT(*) FROM test;' },
-  { query: 'SELECT * FROM test WHERE id = $1::int;', params: [ 1 ] },
-  { query: 'INSERT INTO test (name) VALUES ($1:text);', params: [ 'Name!' ] },
-  { query: 'SELECT COUNT(*) FROM test;' }
+  { text: 'SELECT COUNT(*) FROM test;' },
+  { text: 'SELECT * FROM test WHERE id = $1::int;', values: [ 1 ] },
+  { text: 'INSERT INTO test (name) VALUES ($1:text);', values: [ 'Name!' ] },
+  { text: 'SELECT COUNT(*) FROM test;' }
 ]).then(function(results) {
   console.log(results);
 }).catch(function(error) {

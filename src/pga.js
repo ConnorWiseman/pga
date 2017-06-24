@@ -34,8 +34,8 @@ function performTransaction(pool, queries, callback) {
       }
 
       sequence(queries, (results, current, next) => {
-        let query  = current.query,
-            params = current.params || [];
+        let query  = current.text,
+            params = current.values || [];
 
         client.query(query, params, (error, result) => {
           if (error) {
@@ -137,6 +137,36 @@ let PostgreSQLAdapter = module.exports = class PostgreSQLAdapter {
 
 
   /**
+   * A template tag function that returns an object compatible with the query
+   * function in the node-postgres library.
+   *
+   * @param  {Array.<String>} strings
+   * @param  {...*}           [keys]
+   * @return {Object}
+   * @public
+   * @see {@link https://github.com/brianc/node-postgres/blob/master/lib/query.js#L21}
+   * @example
+   *    const pga = require('pga');
+   *    let db = pga(config);
+   *
+   *    let id = 1;
+   *
+   *    db.query(db.sql`SELECT * FROM test WHERE id = ${id}`, function(error, result) {
+   *      if (error) {
+   *        return console.error(error);
+   *      }
+   *      console.log(result);
+   *    });
+   */
+  sql(strings, ...keys) {
+    return {
+      text:   strings.reduce((sql, frag, i) => sql + '$' + i + frag),
+      values: keys
+    };
+  }
+
+
+  /**
    * Performs a database transaction, or a sequential set of SQL queries. The
    * callback is optional, and if no callback is provided, #transact will
    * return a Promise object.
@@ -149,10 +179,10 @@ let PostgreSQLAdapter = module.exports = class PostgreSQLAdapter {
    *    let db = pga(config);
    *
    *    db.transact([
-   *      { query: 'SELECT COUNT(*) FROM test;' },
-   *      { query: 'SELECT * FROM test WHERE id = $1::int;', params: [ 1 ] },
-   *      { query: 'INSERT INTO test (name) VALUES ($1:text);', params: [ 'Name!' ] },
-   *      { query: 'SELECT COUNT(*) FROM test;' }
+   *      { text: 'SELECT COUNT(*) FROM test;' },
+   *      { text: 'SELECT * FROM test WHERE id = $1::int;', values: [ 1 ] },
+   *      { text: 'INSERT INTO test (name) VALUES ($1:text);', values: [ 'Name!' ] },
+   *      { text: 'SELECT COUNT(*) FROM test;' }
    *    ], function(error, results) {
    *      if (error) {
    *        return console.error(error);
@@ -161,10 +191,10 @@ let PostgreSQLAdapter = module.exports = class PostgreSQLAdapter {
    *    });
    *
    *    db.transact([
-   *      { query: 'SELECT COUNT(*) FROM test;' },
-   *      { query: 'SELECT * FROM test WHERE id = $1::int;', params: [ 1 ] },
-   *      { query: 'INSERT INTO test (name) VALUES ($1:text);', params: [ 'Name!' ] },
-   *      { query: 'SELECT COUNT(*) FROM test;' }
+   *      { text: 'SELECT COUNT(*) FROM test;' },
+   *      { text: 'SELECT * FROM test WHERE id = $1::int;', values: [ 1 ] },
+   *      { text: 'INSERT INTO test (name) VALUES ($1:text);', values: [ 'Name!' ] },
+   *      { text: 'SELECT COUNT(*) FROM test;' }
    *    ]).then(function(results) {
    *      console.log(results);
    *    }).catch(function(error) {
