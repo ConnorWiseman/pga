@@ -25,7 +25,7 @@ function performTransaction(pool, queries, callback) {
   pool.connect((error, client, done) => {
     if (error) {
       done(client);
-      return callback(error, null, null);
+      return callback(error, null);
     }
 
     client.query('BEGIN', error => {
