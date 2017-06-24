@@ -61,6 +61,22 @@ function performTransaction(pool, queries, callback) {
 
 
 /**
+ * Rolls back any failed transaction.
+ * @param  {Client}   client
+ * @param  {Function} done
+ * @param  {Error}    error
+ * @param  {Function} callback
+ * @private
+ */
+function rollback(client, done, error, callback) {
+  client.query('ROLLBACK', rollbackError => {
+    done(rollbackError);
+    return callback(error || rollbackError, null);
+  });
+};
+
+
+/**
  * @class Creates a PostgreSQL connection pool and exports utility methods for
  *        performing queries from pooled connections. Methods support both
  *        callback and Promise patterns.
