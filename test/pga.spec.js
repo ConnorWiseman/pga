@@ -34,6 +34,14 @@ describe('PostgreSQLAdapter', function() {
     db.close();
   });
 
+  describe('#close', function() {
+    it('should defer to `pool.end`', function() {
+      sinon.stub(db.pool, 'end');
+      db.close();
+      db.pool.end.should.have.been.calledOnce;
+    });
+  });
+
   describe('#sql', function() {
     it('should return an object', function() {
       (db.sql`TEST`).should.be.an('Object');
