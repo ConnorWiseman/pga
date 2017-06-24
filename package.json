@@ -1,6 +1,6 @@
 {
   "name": "pga",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A convenience wrapper around the pg module's Pool object. Supports callbacks and Promises.",
   "main": "index.js",
   "files": [
