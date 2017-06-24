@@ -34,6 +34,11 @@ describe('PostgreSQLAdapter', function() {
     db.close();
   });
 
+  // Obviously not ideal behavior.
+  it('should do nothing when the pool emits an error', function() {
+    db.pool.emit('error');
+  });
+
   describe('#close', function() {
     it('should defer to `pool.end`', function() {
       sinon.stub(db.pool, 'end');
@@ -115,6 +120,16 @@ describe('PostgreSQLAdapter', function() {
       }).should.be.fulfilled.and.notify(done);
     });
 
+    it('should call `pool.connect`', function(done) {
+      sinon.stub(db.pool, 'connect').callsArgWith(0, 'connect error', null, () => {});
+      db.transact([
+        { text: 'SELECT * FROM testing;' }
+      ], function(error, result) {
+        error.should.equal('connect error');
+        done();
+      });
+    });
+
     it('should perform database queries', function(done) {
       db.transact([
         { text: 'SELECT * FROM testing;' }
@@ -124,7 +139,49 @@ describe('PostgreSQLAdapter', function() {
       }).should.be.fulfilled.and.notify(done);
     });
 
-    it('should rollback on failure', function(done) {
+    it('should rollback on `BEGIN` failure', function(done) {
+      let client = {
+        query: sinon.stub().callsArgWith(1, 'begin error')
+      };
+      sinon.stub(db.pool, 'connect').callsArgWith(0, null, client, () => {});
+      db.transact([
+        { text: 'SELECT * FROM testing;' }
+      ], function(error, result) {
+        error.should.equal('begin error');
+        done();
+      });
+    });
+
+    it('should handle rollback errors', function(done) {
+      let client = {
+        query: sinon.stub()
+          .onFirstCall().callsArgWith(1, 'begin error')
+          .onSecondCall().callsArgWith(1, 'rollback error')
+      };
+      sinon.stub(db.pool, 'connect').callsArgWith(0, null, client, () => {});
+      db.transact([
+        { text: 'SELECT * FROM testing;' }
+      ], function(error, result) {
+        error.should.equal('rollback error');
+        done();
+      });
+    });
+
+    it('should rollback on `COMMIT` failure', function() {
+      let client = {
+        query: sinon.stub()
+          .onFirstCall().callsArgWith(1, null)
+          .onSecondCall().callsArgWith(2, null, {})
+          .onThirdCall().callsArgWith(1, 'commit error')
+      };
+      sinon.stub(db.pool, 'connect').callsArgWith(0, null, client, () => {});
+
+      db.transact([
+        { text: 'SELECT * FROM testing;' }
+      ]);
+    });
+
+    it('should rollback on query failure', function(done) {
       db.transact([
         { text: 'BAD SQL' }
       ]).should.be.rejected.and.notify(done);
