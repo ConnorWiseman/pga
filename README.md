@@ -36,8 +36,6 @@ var db = pga({
 Closes the database connection. An alias for `Pool.end`.
 
 ```javascript
-let db = pga(config);
-
 db.close();
 ```
 
@@ -68,10 +66,8 @@ A template tagging function that returns an object compatible with `node-postgre
 
 #### Query
 ```javascript
-let db = pga(config);
-
-let id = 1;
-let query = db.sql`SELECT * FROM test WHERE id = ${id};`;
+var id = 1;
+var query = db.sql`SELECT * FROM test WHERE id = ${id};`;
 
 db.query(query, function(error, result) {
   if (error) {
@@ -83,10 +79,8 @@ db.query(query, function(error, result) {
 
 #### Transaction
 ```javascript
-let db = pga(config);
-
-let text = 'Hello, world!';
-let query = db.sql`INSERT INTO test(words) VALUES (${text});`;
+var text = 'Hello, world!';
+var query = db.sql`INSERT INTO test(words) VALUES (${text});`;
 
 db.transact([
   query,
