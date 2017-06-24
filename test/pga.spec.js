@@ -23,7 +23,7 @@ describe('PostgreSQLAdapter', function() {
     db = new PostgreSQLAdapter({
       user:     'postgres',
       password: '',
-      database: 'travis_ci_test',
+      database: process.env.TEST_DB,
       host:     'localhost',
       port:     5432,
       max:      10
@@ -42,6 +42,38 @@ describe('PostgreSQLAdapter', function() {
     });
   });
 
+  describe('#query', function() {
+    it('should defer to `pool.query`', function() {
+      sinon.stub(db.pool, 'query').callsFake(() => { return true; });
+      db.query('TEST');
+      db.pool.query.should.have.been.calledOnce;
+    });
+
+    it('should pass single string argument to `pool.query`', function() {
+      sinon.stub(db.pool, 'query').callsFake(() => { return true; });
+      db.query('TEST');
+      db.pool.query.should.have.been.calledOnce;
+      db.pool.query.should.have.been.calledWith('TEST');
+    });
+
+    it('should pass string and array to `pool.query`', function() {
+      sinon.stub(db.pool, 'query').callsFake(() => { return true; });
+      db.query('TEST', [ 1, 2, 3 ]);
+      db.pool.query.should.have.been.calledOnce;
+      db.pool.query.should.have.been.calledWith('TEST', [ 1, 2, 3 ]);
+    });
+
+    it('should pass parameterized SQL text/values object to `pool.query`', function() {
+      sinon.stub(db.pool, 'query').callsFake(() => { return true; });
+      db.query(db.sql`TEST`);
+      db.pool.query.should.have.been.calledOnce;
+      db.pool.query.should.have.been.calledWith({
+        text:   'TEST',
+        values: []
+      });
+    });
+  });
+
   describe('#sql', function() {
     it('should return an object', function() {
       (db.sql`TEST`).should.be.an('Object');
@@ -49,6 +81,7 @@ describe('PostgreSQLAdapter', function() {
 
     it('should return an object with keys `text` and `values`', function() {
       let query = db.sql`TEST`;
+      query.should.be.an('Object');
       query.should.have.all.keys('text', 'values');
     });
 
@@ -57,7 +90,7 @@ describe('PostgreSQLAdapter', function() {
     });
 
     it('should have key `text` as the template literal with variables replaced', function() {
-      let id = 1,
+      let id       = 1,
           expected = 'SELECT * FROM test WHERE id = $1;';
       (db.sql`SELECT * FROM test WHERE id = ${id};`.text).should.equal(expected);
     });
@@ -67,10 +100,46 @@ describe('PostgreSQLAdapter', function() {
     });
 
     it('should have key `values` as the variables passed to template literal', function() {
-      let id = 1,
-          expected = [ id ];
-      (db.sql`SELECT * FROM test WHERE id = ${id};`.values).should.deep.equal(expected);
+      let id = 1;
+      (db.sql`SELECT * FROM test WHERE id = ${id};`.values).should.deep.equal([ id ]);
+    });
+  });
 
+  describe('#transact', function() {
+    it('should call `pool.connect`', function(done) {
+      sinon.spy(db.pool, 'connect');
+      db.transact([
+        { text: 'SELECT * FROM testing;' }
+      ]).then(function(results) {
+        db.pool.connect.should.have.been.calledOnce;
+      }).should.be.fulfilled.and.notify(done);
+    });
+
+    it('should perform database queries', function(done) {
+      db.transact([
+        { text: 'SELECT * FROM testing;' }
+      ]).then(function(results) {
+        results.length.should.equal(1);
+        results[0].rows.length.should.equal(3);
+      }).should.be.fulfilled.and.notify(done);
+    });
+
+    it('should rollback on failure', function(done) {
+      db.transact([
+        { text: 'BAD SQL' }
+      ]).should.be.rejected.and.notify(done);
+    });
+
+    it('should ensure callback is a function', function(done) {
+      db.transact([
+        { text: 'SELECT * FROM testing;' }
+      ], 'not a function').should.be.fulfilled.and.notify(done);
+    });
+
+    it('should execute callback if provided', function(done) {
+      db.transact([
+        { text: 'SELECT * FROM testing;' }
+      ], done);
     });
   });
 });
