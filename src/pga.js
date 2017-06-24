@@ -71,7 +71,7 @@ function performTransaction(pool, queries, callback) {
 function rollback(client, done, error, callback) {
   client.query('ROLLBACK', rollbackError => {
     done(rollbackError);
-    return callback(error || rollbackError, null);
+    return callback(rollbackError || error, null);
   });
 };
 
