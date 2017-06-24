@@ -5,7 +5,7 @@
 [![devDependencies Status](https://david-dm.org/ConnorWiseman/pga/dev-status.svg?style=flat-square)](https://david-dm.org/ConnorWiseman/pga?type=dev)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](https://github.com/ConnorWiseman/pga/blob/master/LICENSE)
 
-A convenience wrapper around the [pg](https://github.com/brianc/node-postgres) module's [Pool object](https://github.com/brianc/node-pg-pool). Supports callbacks and Promises.
+A convenience wrapper around the [pg](https://github.com/brianc/node-postgres) module's [Pool object](https://github.com/brianc/node-pg-pool).
 
 
 ## Installation
@@ -41,7 +41,7 @@ db.close();
 
 
 ### &#35;query
-Performs a single parameterized query.
+Performs a single parameterized query. An alias for `Pool.query`.
 
 ```javascript
 // A regular query with a callback function.
@@ -52,8 +52,23 @@ db.query('SELECT * FROM test;', function(error, result) {
   console.log(result.rows);
 });
 
-// A regular query with a Promise object.
+// A regular query with a parameter and callback function.
+db.query('SELECT * FROM test WHERE id = $1::int;', [ 1 ], function(error, result) {
+  if (error) {
+    return console.error(error);
+  }
+  console.log(result.rows);
+});
+
+// A regular query that returns a Promise object.
 db.query('SELECT * FROM test;').then(function(result) {
+  console.log(result.rows);
+}).catch(function(error) {
+  console.error(error);
+});
+
+// A regular query with a parameter that returns a Promise object.
+db.query('SELECT * FROM test WHERE id = $1::int;', [ 1 ]).then(function(result) {
   console.log(result.rows);
 }).catch(function(error) {
   console.error(error);
@@ -113,7 +128,7 @@ db.transact([
   console.log(results);
 });
 
-// A transaction with a Promise object.
+// A transaction that returns a Promise object.
 db.transact([
   { text: 'SELECT COUNT(*) FROM test;' },
   { text: 'SELECT * FROM test WHERE id = $1::int;', values: [ 1 ] },
