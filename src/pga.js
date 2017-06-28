@@ -180,13 +180,13 @@ let PostgreSQLAdapter = module.exports = class PostgreSQLAdapter {
 
     return {
       text: strings.reduce((sql, frag, i) => {
-        if (sql.charAt(sql.length - 1) === '.') {
+        if (sql.charAt(sql.length - 1) === '$') {
           offset++;
           return sql.slice(0, -1) + params.splice(frag, 1)[0] + frag;
         }
 
         return sql + '$' + (i - offset) + frag;
-      }),
+      }).replace(/\s+/g, ' '),
       values: params
     };
   }

@@ -100,6 +100,13 @@ describe('PostgreSQLAdapter', function() {
       (db.sql`SELECT * FROM test WHERE id = ${id};`.text).should.equal(expected);
     });
 
+    it('should interpolate values demarcated by `$` character as string literals', function() {
+      let id       = 1,
+          table    = 'test',
+          expected = 'SELECT * FROM test WHERE id = $1;';
+      (db.sql`SELECT * FROM $${table} WHERE id = ${id};`.text).should.equal(expected);
+    });
+
     it('should have key `values` as an array', function() {
       (db.sql`TEST`.values).should.be.an('Array');
     });
