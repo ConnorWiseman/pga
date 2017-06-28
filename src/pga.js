@@ -175,9 +175,20 @@ let PostgreSQLAdapter = module.exports = class PostgreSQLAdapter {
    *    });
    */
   sql(strings, ...keys) {
+    let params = keys.slice();
+
     return {
-      text:   strings.reduce((sql, frag, i) => sql + '$' + i + frag),
-      values: keys
+      text: strings.reduce((sql, frag, i) => {
+        let literal;
+
+        if (sql.charAt(sql.length - 1) === '.') {
+          literal = params.splice(i, 1)[0];
+          return sql + literal + frag;
+        }
+        
+        return sql + '$' + i + frag
+      }),
+      values: params
     };
   }
 
