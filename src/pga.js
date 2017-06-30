@@ -174,22 +174,22 @@ let PostgreSQLAdapter = module.exports = class PostgreSQLAdapter {
    *      console.log(result);
    *    });
    */
-  sql(strings, ...keys) {
-    let params = keys.slice(),
-		    offset = 0;
+   sql(strings, ...keys) {
+     let params = keys.slice(),
+         offset = 0;
 
-    return {
-      text: strings.reduce((sql, frag, i) => {
-        if (sql.charAt(sql.length - 1) === '$') {
-          offset++;
-          return sql.slice(0, -1) + params.splice(frag, 1)[0] + frag;
-        }
+     return {
+       text: strings.reduce((sql, frag, i) => {
+         if (sql.charAt(sql.length - 1) === '$') {
+           return sql.slice(0, -1) + params.splice(i - ++offset, 1)[0] + frag;
+         }
 
-        return sql + '$' + (i - offset) + frag;
-      }).replace(/\s+/g, ' '),
-      values: params
-    };
-  }
+         return sql + '$' + (i - offset) + frag;
+       }).replace(/\s+/g, ' '),
+
+       values: params
+     };
+   }
 
 
   /**

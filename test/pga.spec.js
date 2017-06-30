@@ -107,6 +107,13 @@ describe('PostgreSQLAdapter', function() {
       (db.sql`SELECT * FROM $${table} WHERE id = ${id};`.text).should.equal(expected);
     });
 
+    it('should interpolate multiple values demarcated by `$` character as string literals', function() {
+      let id       = 1,
+          table    = 'test',
+          expected = 'SELECT * FROM test t1 WHERE t1.id = $1 INNER JOIN test t2 ON t1.id = t2.id;';
+      (db.sql`SELECT * FROM $${table} t1 WHERE t1.id = ${id} INNER JOIN $${table} t2 ON t1.id = t2.id;`.text).should.equal(expected);
+    });
+
     it('should have key `values` as an array', function() {
       (db.sql`TEST`.values).should.be.an('Array');
     });
