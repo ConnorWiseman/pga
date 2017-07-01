@@ -12,6 +12,71 @@ const sequence = require('./sequence.js');
 
 
 /**
+ * Using the specified connection pool, performs the specified function using
+ * a series of queries and a user-defined callback function.
+ * @param  {BoundPool}      pool
+ * @param  {Function}       fn
+ * @param  {Array.<Object>} queries
+ * @param  {Function}       callback
+ * @private
+ */
+function multiple(pool, fn, queries, callback) {
+  if (callback && typeof callback === 'function') {
+    return fn(pool, queries, callback);
+  }
+
+  return new Promise((resolve, reject) => {
+    fn(pool, queries, (error, result) => {
+      if (error) {
+        return reject(error);
+      }
+
+      resolve(result);
+    });
+  });
+};
+
+
+/**
+ * Using the specified connection pool, performs a series of specified queries
+ * in parallel, executing a specified callback function once all queries have
+ * successfully completed.
+ * @param  {BoundPool}      pool
+ * @param  {Array.<Object>} queries
+ * @param  {Function}       callback
+ * @private
+ */
+function performParallel(pool, queries, callback) {
+  let count   = 0,
+      results = new Array(queries.length);
+
+  for (let i = 0; i < queries.length; i++) {
+    pool.connect((error, client, done) => {
+      if (error) {
+        done(client);
+        return callback(error, results);
+      }
+
+        client.query(queries[i], (error, result) => {
+          if (error) {
+            done(client);
+            return callback(error, results);
+          }
+
+          results[i] = result;
+
+          if (++count === queries.length) {
+            done(client);
+
+            return callback(null, results);
+          }
+        });
+    });
+  }
+};
+
+
+/**
  * Using the specified connection pool, performs a series of specified queries
  * using any specified parameters in sequence, finally executing a specified
  * callback function with any error or result. Will automatically rollback the
@@ -107,6 +172,53 @@ let PostgreSQLAdapter = module.exports = class PostgreSQLAdapter {
    */
   close() {
     return this.pool.end.apply(this.pool, arguments);
+  }
+
+
+  /**
+   * Performs a series of database queries in parallel over a multiple client
+   * connections to optimize performance, returning results after all the
+   * queries have finished execution. The callback is optional, and if no
+   * callback is provided, #parallel will return a Promise object. An error
+   * in any one of the queries will result in the immediate termination of
+   * the function, yielding the execution of the callback with an error and
+   * a potential partial array of results from other successful queries. When
+   * used to return a Promise object, the Promise will be rejected on the
+   * first error without exposing any completed results.
+   *
+   * It is not safe to use #parallel with queries that may have an impact on
+   * the database.
+   * @param  {Array.<Object>} queries
+   * @param  {Function}       [callback] Optional.
+   * @return {*}
+   * @public
+   * @example
+   *    const pga = require('pga');
+   *    let db = pga(config);
+   *
+   *    db.parallel([
+   *      { text: 'SELECT COUNT(*) FROM test;' },
+   *      { text: 'SELECT * FROM test WHERE id = $1::int;', values: [ 1 ] },
+   *      { text: 'SELECT * FROM test;' }
+   *    ], function(error, results) {
+   *      if (error) {
+   *        return console.error(error);
+   *      }
+   *      console.log(results);
+   *    });
+   *
+   *    db.parallel([
+   *      { text: 'SELECT COUNT(*) FROM test;' },
+   *      { text: 'SELECT * FROM test WHERE id = $1::int;', values: [ 1 ] },
+   *      { text: 'SELECT * FROM test;' }
+   *    ]).then(function(results) {
+   *      console.log(results);
+   *    }).catch(function(error) {
+   *      console.error(error);
+   *    });
+   */
+  parallel(queries, callback) {
+    return multiple(this.pool, performParallel, queries, callback);
   }
 
 
@@ -228,18 +340,6 @@ let PostgreSQLAdapter = module.exports = class PostgreSQLAdapter {
    *    });
    */
   transact(queries, callback) {
-    if (callback && typeof callback === 'function') {
-      return performTransaction(this.pool, queries, callback);
-    }
-
-    return new Promise((resolve, reject) => {
-      performTransaction(this.pool, queries, (error, result) => {
-        if (error) {
-          return reject(error);
-        }
-
-        resolve(result);
-      });
-    });
+    return multiple(this.pool, performTransaction, queries, callback);
   }
 };

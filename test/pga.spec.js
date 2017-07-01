@@ -47,6 +47,80 @@ describe('PostgreSQLAdapter', function() {
     });
   });
 
+  describe('#parallel', function() {
+    it('should call `pool.connect`', function(done) {
+      sinon.spy(db.pool, 'connect');
+      db.parallel([
+        { text: 'SELECT * FROM testing;' }
+      ]).then(function(results) {
+        db.pool.connect.should.have.been.calledOnce;
+      }).should.be.fulfilled.and.notify(done);
+    });
+
+    it('should handle connection errors', function(done) {
+      sinon.stub(db.pool, 'connect').callsArgWith(0, 'connect error', null, () => {});
+      db.parallel([
+        { text: 'SELECT * FROM testing;' }
+      ], function(error, result) {
+        error.should.equal('connect error');
+        done();
+      });
+    });
+
+    it('should perform database queries', function(done) {
+      db.parallel([
+        { text: 'SELECT * FROM testing;' },
+        { text: 'SELECT * FROM testing LIMIT 1;' },
+        { text: 'SELECT * FROM testing LIMIT 2;' },
+        { text: 'SELECT * FROM testing LIMIT 3;' },
+        { text: 'SELECT * FROM testing;' }
+      ]).then(function(results) {
+        results.length.should.equal(5);
+      }).should.be.fulfilled.and.notify(done);
+    });
+
+    it('should return results in the proper order', function(done) {
+      db.parallel([
+        { text: 'SELECT * FROM testing;' },
+        { text: 'SELECT * FROM testing LIMIT 1;' },
+        { text: 'SELECT * FROM testing LIMIT 2;' },
+        { text: 'SELECT * FROM testing LIMIT 3;' },
+        { text: 'SELECT * FROM testing;' }
+      ]).then(function(results) {
+        results[0].rows.length.should.equal(3);
+        results[1].rows.length.should.equal(1);
+        results[2].rows.length.should.equal(2);
+        results[3].rows.length.should.equal(3);
+        results[4].rows.length.should.equal(3);
+      }).should.be.fulfilled.and.notify(done);
+    });
+
+    it('should handle `client.query` errors', function(done) {
+      let client = {
+        query: sinon.stub().callsArgWith(1, 'query error')
+      };
+      sinon.stub(db.pool, 'connect').callsArgWith(0, null, client, () => {});
+      db.parallel([
+        { text: 'SELECT * FROM testing;' }
+      ], function(error, result) {
+        error.should.equal('query error');
+        done();
+      });
+    });
+
+    it('should return a Promise if callback is not a function', function(done) {
+      db.parallel([
+        { text: 'SELECT * FROM testing;' }
+      ], 'not a function').should.be.fulfilled.and.notify(done);
+    });
+
+    it('should execute callback if provided', function(done) {
+      db.parallel([
+        { text: 'SELECT * FROM testing;' }
+      ], done);
+    });
+  });
+
   describe('#query', function() {
     it('should defer to `pool.query`', function() {
       sinon.stub(db.pool, 'query').callsFake(() => { return true; });
@@ -134,7 +208,7 @@ describe('PostgreSQLAdapter', function() {
       }).should.be.fulfilled.and.notify(done);
     });
 
-    it('should call `pool.connect`', function(done) {
+    it('should handle connection errors', function(done) {
       sinon.stub(db.pool, 'connect').callsArgWith(0, 'connect error', null, () => {});
       db.transact([
         { text: 'SELECT * FROM testing;' }
@@ -201,7 +275,7 @@ describe('PostgreSQLAdapter', function() {
       ]).should.be.rejected.and.notify(done);
     });
 
-    it('should ensure callback is a function', function(done) {
+    it('should return a Promise if callback is not a function', function(done) {
       db.transact([
         { text: 'SELECT * FROM testing;' }
       ], 'not a function').should.be.fulfilled.and.notify(done);

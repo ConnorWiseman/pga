@@ -40,6 +40,41 @@ db.close();
 ```
 
 
+### &#35;parallel
+Performs a series of parameterized queries in parallel over multiple connections from the underlying pool.
+
+Query execution order is arbitrary, but the results are returned in the expected order.
+
+If a single query results in an error, `parallel` will immediately execute the specified callback function with both the error and potentially a partial array of results from other successful queries. When returning a Promise, one error among any of the queries will result in the Promise being rejected.
+
+`parallel` is provided as a means of efficiently performing multiple `SELECT` queries at once rather than one after the other in sequence. Do _not_ use `parallel` to execute grouped SQL queries that may potentially alter the database- use [`transact`](https://github.com/ConnorWiseman/pga#transact) instead!
+
+```javascript
+// Parallelized queries with a callback function.
+db.parallel([
+  { text: 'SELECT COUNT(*) FROM test;' },
+  { text: 'SELECT * FROM test WHERE id = $1::int;', values: [ 1 ] },
+  { text: 'SELECT * FROM test;' }
+], function(error, results) {
+  if (error) {
+    return console.error(error);
+  }
+  console.log(results);
+});
+
+// Parallelized queries that return a Promise object.
+db.parallel([
+  { text: 'SELECT COUNT(*) FROM test;' },
+  { text: 'SELECT * FROM test WHERE id = $1::int;', values: [ 1 ] },
+  { text: 'SELECT * FROM test;' }
+]).then(function(results) {
+  console.log(results);
+}).catch(function(error) {
+  console.error(error);
+});
+```
+
+
 ### &#35;query
 Performs a single parameterized query. An alias for `Pool.query`.
 
