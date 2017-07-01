@@ -126,9 +126,29 @@ db.query(query, function(error, result) {
   if (error) {
     return console.error(error);
   }
+  console.log(result);
+});
+```
+
+
+#### Parallel
+```javascript
+var id = 1;
+var query = db.sql`SELECT * FROM test WHERE id = ${id};`;
+
+db.parallel([
+  query,
+  query,
+  query,
+  query
+], function(error, results) {
+  if (error) {
+    return console.error(error);
+  }
   console.log(results);
 });
 ```
+
 
 #### Transaction
 ```javascript
@@ -140,7 +160,7 @@ db.transact([
   query,
   query,
   query
-], function(error, result) {
+], function(error, results) {
   if (error) {
     return console.error(error);
   }
