@@ -57,20 +57,19 @@ function performParallel(pool, queries, callback) {
         return callback(error, results);
       }
 
-        client.query(queries[i], (error, result) => {
-          if (error) {
-            done(client);
-            return callback(error, results);
-          }
+      client.query(queries[i], (error, result) => {
+        if (error) {
+          done(client);
+          return callback(error, results);
+        }
 
-          results[i] = result;
+        results[i] = result;
+        done(client);
 
-          if (++count === queries.length) {
-            done(client);
-
-            return callback(null, results);
-          }
-        });
+        if (++count === queries.length) {
+          return callback(null, results);
+        }
+      });
     });
   }
 };
