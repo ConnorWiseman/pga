@@ -95,19 +95,6 @@ describe('PostgreSQLAdapter', function() {
       }).should.be.fulfilled.and.notify(done);
     });
 
-    it('should handle `client.query` errors', function(done) {
-      let client = {
-        query: sinon.stub().callsArgWith(1, 'query error')
-      };
-      sinon.stub(db.pool, 'connect').callsArgWith(0, null, client, () => {});
-      db.parallel([
-        { text: 'SELECT * FROM testing;' }
-      ], function(error, result) {
-        error.should.equal('query error');
-        done();
-      });
-    });
-
     it('should return a Promise if callback is not a function', function(done) {
       db.parallel([
         { text: 'SELECT * FROM testing;' }
