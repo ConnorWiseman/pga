@@ -4,7 +4,7 @@
 'use strict';
 
 // Required project modules.
-const PostgreSQLAdapter = require('./src/pga.js');
+const PostgreSQLAdapter = require('./lib/pga.js');
 
 
 /**

@@ -13,7 +13,7 @@ chai.use(chaiAsPromised);
 chai.use(sinonChai);
 
 // Require module to test.
-const PostgreSQLAdapter = require('../src/pga.js');
+const PostgreSQLAdapter = require('../lib/pga.js');
 
 // Describe tests.
 describe('PostgreSQLAdapter', function() {
