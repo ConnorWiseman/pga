@@ -54,9 +54,9 @@ If a single query results in an error, `parallel` will immediately execute the s
 ```javascript
 // Parallelized queries with a callback function.
 db.parallel([
-  { text: 'SELECT COUNT(*) FROM test;' },
+  'SELECT COUNT(*) FROM test;',
   { text: 'SELECT * FROM test WHERE id = $1::int;', values: [ 1 ] },
-  { text: 'SELECT * FROM test;' }
+  'SELECT * FROM test;'
 ], function(error, results) {
   if (error) {
     return console.error(error);
@@ -66,9 +66,9 @@ db.parallel([
 
 // Parallelized queries that return a Promise object.
 db.parallel([
-  { text: 'SELECT COUNT(*) FROM test;' },
+  'SELECT COUNT(*) FROM test;',
   { text: 'SELECT * FROM test WHERE id = $1::int;', values: [ 1 ] },
-  { text: 'SELECT * FROM test;' }
+  'SELECT * FROM test;'
 ]).then(function(results) {
   console.log(results);
 }).catch(function(error) {
@@ -119,10 +119,10 @@ Performs a database transaction on an array of parameterized queries.
 ```javascript
 // A transaction with a callback function.
 db.transact([
-  { text: 'SELECT COUNT(*) FROM test;' },
-  { text: 'SELECT * FROM test WHERE id = $1::int;', values: [ 1 ] },
-  { text: 'INSERT INTO test (name) VALUES ($1:text);', values: [ 'Name!' ] },
-  { text: 'SELECT COUNT(*) FROM test;' }
+  'SELECT COUNT(*) FROM test;',
+  'SELECT * FROM test WHERE id = $1::int;', values: [ 1 ] },
+  'INSERT INTO test (name) VALUES ($1:text);', values: [ 'Name!' ] },
+  'SELECT COUNT(*) FROM test;'
 ], function(error, results) {
   if (error) {
     return console.error(error);
@@ -132,10 +132,10 @@ db.transact([
 
 // A transaction that returns a Promise object.
 db.transact([
-  { text: 'SELECT COUNT(*) FROM test;' },
+  'SELECT COUNT(*) FROM test;',
   { text: 'SELECT * FROM test WHERE id = $1::int;', values: [ 1 ] },
   { text: 'INSERT INTO test (name) VALUES ($1:text);', values: [ 'Name!' ] },
-  { text: 'SELECT COUNT(*) FROM test;' }
+  'SELECT COUNT(*) FROM test;'
 ]).then(function(results) {
   console.log(results);
 }).catch(function(error) {
@@ -144,4 +144,4 @@ db.transact([
 ```
 
 ## Extras
-* [pga-sql](https://github.com/ConnorWiseman/pga-sql)
+* [pga-sql](https://github.com/ConnorWiseman/pga-sql) for cleaner parameterized queries

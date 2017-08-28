@@ -20,12 +20,20 @@ const sequence = require('seqnce');
  * @private
  */
 function multiple(pool, fn, queries, callback) {
+  let queryObjects = queries.map(query => {
+    if (typeof query === 'string') {
+      return { text: query, values: [] };
+    }
+
+    return Object.assign({ values: [] }, query);
+  });
+
   if (callback && typeof callback === 'function') {
-    return fn(pool, queries, callback);
+    return fn(pool, queryObjects, callback);
   }
 
   return new Promise((resolve, reject) => {
-    fn(pool, queries, (error, result) => {
+    fn(pool, queryObjects, (error, result) => {
       if (error) {
         return reject(error);
       }
@@ -89,7 +97,7 @@ function performTransaction(pool, queries, callback) {
 
       sequence(queries, (results, current, next) => {
         let query  = current.text,
-            params = current.values || [];
+            params = current.values;
 
         client.query(query, params, (error, result) => {
           if (error) {
