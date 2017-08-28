@@ -14,7 +14,7 @@
     "report-coverage": "codecov"
   },
   "engines": {
-    "node": ">=4.8.4"
+    "node": ">=6.4.0"
   },
   "repository": {
     "type": "git",
