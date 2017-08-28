@@ -13,14 +13,14 @@ chai.use(chaiAsPromised);
 chai.use(sinonChai);
 
 // Require module to test.
-const PostgreSQLAdapter = require('../lib/pga.js');
+const pga = require('../index.js');
 
 // Describe tests.
 describe('PostgreSQLAdapter', function() {
   var db;
 
   beforeEach(function() {
-    db = new PostgreSQLAdapter({
+    db = pga({
       user:     'postgres',
       password: '',
       database: process.env.TEST_DB,
@@ -32,11 +32,6 @@ describe('PostgreSQLAdapter', function() {
 
   afterEach(function() {
     db.close();
-  });
-
-  // Obviously not ideal behavior.
-  it('should do nothing when the pool emits an error', function() {
-    db.pool.emit('error');
   });
 
   describe('#close', function() {
@@ -137,51 +132,6 @@ describe('PostgreSQLAdapter', function() {
         text:   'TEST',
         values: []
       });
-    });
-  });
-
-  describe('#sql', function() {
-    it('should return an object', function() {
-      (db.sql`TEST`).should.be.an('Object');
-    });
-
-    it('should return an object with keys `text` and `values`', function() {
-      let query = db.sql`TEST`;
-      query.should.be.an('Object');
-      query.should.have.all.keys('text', 'values');
-    });
-
-    it('should have key `text` as a string', function() {
-      (db.sql`TEST`.text).should.be.a.string;
-    });
-
-    it('should have key `text` as the template literal with variables replaced', function() {
-      let id       = 1,
-          expected = 'SELECT * FROM test WHERE id = $1;';
-      (db.sql`SELECT * FROM test WHERE id = ${id};`.text).should.equal(expected);
-    });
-
-    it('should interpolate values demarcated by `$` character as string literals', function() {
-      let id       = 1,
-          table    = 'test',
-          expected = 'SELECT * FROM test WHERE id = $1;';
-      (db.sql`SELECT * FROM $${table} WHERE id = ${id};`.text).should.equal(expected);
-    });
-
-    it('should interpolate multiple values demarcated by `$` character as string literals', function() {
-      let id       = 1,
-          table    = 'test',
-          expected = 'SELECT * FROM test t1 WHERE t1.id = $1 INNER JOIN test t2 ON t1.id = t2.id;';
-      (db.sql`SELECT * FROM $${table} t1 WHERE t1.id = ${id} INNER JOIN $${table} t2 ON t1.id = t2.id;`.text).should.equal(expected);
-    });
-
-    it('should have key `values` as an array', function() {
-      (db.sql`TEST`.values).should.be.an('Array');
-    });
-
-    it('should have key `values` as the variables passed to template literal', function() {
-      let id = 1;
-      (db.sql`SELECT * FROM test WHERE id = ${id};`.values).should.deep.equal([ id ]);
     });
   });
 

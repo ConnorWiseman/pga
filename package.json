@@ -5,17 +5,16 @@
   "main": "index.js",
   "files": [
     "index.js",
-    "src/pga.js",
-    "src/sequence.js",
+    "lib",
     "LICENSE",
     "README.md"
   ],
   "scripts": {
-    "test": "cross-env NODE_ENV=test nyc mocha ./test ./test",
+    "test": "cross-env NODE_ENV=test nyc mocha ./test",
     "report-coverage": "codecov"
   },
   "engines": {
-    "node": ">=6.4.0"
+    "node": ">=4.8.4"
   },
   "repository": {
     "type": "git",
@@ -33,7 +32,7 @@
   "homepage": "https://github.com/ConnorWiseman/pga#readme",
   "dependencies": {
     "bluebird": "^3.5.0",
-    "pg": "^7.1.2",
+    "pg": "^7.2.0",
     "seqnce": "0.0.1"
   },
   "devDependencies": {

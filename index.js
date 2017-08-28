@@ -1,17 +1,8 @@
 /**
- * @file Exports a function that creates a PostgreSQLAdapter object instance.
+ * @file Exports packages.
  */
 'use strict';
 
-// Required project modules.
-const PostgreSQLAdapter = require('./lib/pga.js');
 
-
-/**
- * Exports a function that returns a new PostgreSQLAdapter object instance.
- * @param  {Object} config
- * @return {PostgreSQLAdapter}
- */
-module.exports = function(config) {
-  return new PostgreSQLAdapter(config);
-};
+module.exports     = require('./lib/pga.js');
+module.exports.sql = require('./lib/sql.js');

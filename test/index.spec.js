@@ -16,7 +16,7 @@ describe('pga', function() {
     pga.should.be.a('function');
   });
 
-  it('should return a PostgreSQLAdapter', function() {
+  it('should return an object', function() {
     var db = pga({
       user:     'postgres',
       password: '',
@@ -26,7 +26,7 @@ describe('pga', function() {
       max:      10
     });
 
-    db.constructor.name.should.equal('PostgreSQLAdapter');
+    db.should.be.an('object');
     db.close();
   });
 });
