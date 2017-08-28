@@ -14,6 +14,7 @@ chai.use(sinonChai);
 
 // Require module to test.
 const pga = require('../index.js');
+const sql = pga.sql;
 
 // Describe tests.
 describe('PostgreSQLAdapter', function() {
@@ -126,7 +127,7 @@ describe('PostgreSQLAdapter', function() {
 
     it('should pass parameterized SQL text/values object to `pool.query`', function() {
       sinon.stub(db.pool, 'query').callsFake(() => { return true; });
-      db.query(db.sql`TEST`);
+      db.query(sql`TEST`);
       db.pool.query.should.have.been.calledOnce;
       db.pool.query.should.have.been.calledWith({
         text:   'TEST',
