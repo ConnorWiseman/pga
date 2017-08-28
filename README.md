@@ -7,7 +7,7 @@
 [![devDependencies Status](https://david-dm.org/ConnorWiseman/pga/dev-status.svg?style=flat-square)](https://david-dm.org/ConnorWiseman/pga?type=dev)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](https://github.com/ConnorWiseman/pga/blob/master/LICENSE)
 
-A convenience wrapper around the [pg](https://github.com/brianc/node-postgres) module's [Pool object](https://github.com/brianc/node-pg-pool).
+> A convenience wrapper around the [pg](https://github.com/brianc/node-postgres) module's [Pool object](https://github.com/brianc/node-pg-pool).
 
 
 ## Installation
@@ -21,7 +21,6 @@ npm install --save pga
 
 ```javascript
 const pga = require('pga');
-const sql = pga.sql;
 
 var db = pga({
   user:     'postgres',
@@ -144,61 +143,5 @@ db.transact([
 });
 ```
 
-
-
-## &#35;sql
-A template tagging function that returns an object compatible with `node-postgres`'s querying methods and, by extension, `pga`'s  `query`, `parallel`, and `transact` methods. Template literal variable interpolation makes writing lengthy parameterized queries much cleaner.
-
-Regular variables may be interpolated as string literals (without applying parameterized filtering from the `node-postgres` module) by prefixing them with an additional `$` character. This is unsafe, and should be used carefully.
-
-### Query
-```javascript
-var id = 1;
-var table = 'test';
-var query = sql`SELECT * FROM $${table} WHERE id = ${id};`;
-
-db.query(query, function(error, result) {
-  if (error) {
-    return console.error(error);
-  }
-  console.log(result);
-});
-```
-
-
-### Parallel
-```javascript
-var id = 1;
-var query = sql`SELECT * FROM test WHERE id = ${id};`;
-
-db.parallel([
-  query,
-  query,
-  query,
-  query
-], function(error, results) {
-  if (error) {
-    return console.error(error);
-  }
-  console.log(results);
-});
-```
-
-
-### Transaction
-```javascript
-var text = 'Hello, world!';
-var query = sql`INSERT INTO test(words) VALUES (${text});`;
-
-db.transact([
-  query,
-  query,
-  query,
-  query
-], function(error, results) {
-  if (error) {
-    return console.error(error);
-  }
-  console.log(results);
-});
-```
+## Extras
+* [pga-sql](https://github.com/ConnorWiseman/pga-sql)
