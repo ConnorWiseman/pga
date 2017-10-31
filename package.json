@@ -31,20 +31,20 @@
     "node": ">=6.4.0"
   },
   "dependencies": {
-    "bluebird": "^3.5.0",
-    "pg": "^7.2.0",
-    "seqnce": "0.0.1"
+    "bluebird": "^3.5.1",
+    "pg": "^7.3.0",
+    "seqnce": "0.0.2"
   },
   "devDependencies": {
-    "chai": "^4.1.1",
+    "chai": "^4.1.2",
     "chai-as-promised": "^7.1.1",
-    "codecov": "^2.3.0",
-    "cross-env": "^5.0.5",
-    "eslint": "^4.5.0",
-    "mocha": "^3.5.0",
-    "nyc": "^11.1.0",
+    "codecov": "^3.0.0",
+    "cross-env": "^5.1.1",
+    "eslint": "^4.10.0",
+    "mocha": "^4.0.1",
+    "nyc": "^11.2.1",
     "pga-sql": "0.0.0",
-    "sinon": "^3.2.1",
-    "sinon-chai": "^2.13.0"
+    "sinon": "^4.0.2",
+    "sinon-chai": "^2.14.0"
   }
 }
