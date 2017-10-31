@@ -1,6 +1,6 @@
 {
   "name": "pga",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "A convenience wrapper around the pg module's Pool object.",
   "author": "Connor Wiseman",
   "homepage": "https://github.com/ConnorWiseman/pga#readme",
