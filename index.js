@@ -53,22 +53,22 @@ function multiple(pool, fn, queries, callback) {
  */
 function normalize(args) {
   let result = {
-    queries: null,
+    queries:  null,
     callback: null
   };
 
-  if (args.length == 1 && Array.isArray(args[0])) {
+  if (args.length === 1 && Array.isArray(args[0])) {
     result.queries = args[0];
-  } else if (args.length == 2 && Array.isArray(args[0])) {
+  } else if (args.length === 2 && Array.isArray(args[0])) {
     result.queries = args[0];
 
-    if (typeof args[1] == 'function') {
+    if (typeof args[1] === 'function') {
       result.callback = args[1];
     }
   } else {
     result.queries = args;
 
-    if (typeof result.queries[result.queries.length - 1] == 'function') {
+    if (typeof result.queries[result.queries.length - 1] === 'function') {
       result.callback = result.queries.pop();
     }
   }
