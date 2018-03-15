@@ -120,8 +120,8 @@ Performs a database transaction on an array of parameterized queries.
 // A transaction with a callback function.
 db.transact([
   'SELECT COUNT(*) FROM test;',
-  'SELECT * FROM test WHERE id = $1::int;', values: [ 1 ] },
-  'INSERT INTO test (name) VALUES ($1:text);', values: [ 'Name!' ] },
+  { text: 'SELECT * FROM test WHERE id = $1::int;', values: [ 1 ] },
+  { text: 'INSERT INTO test (name) VALUES ($1:text);', values: [ 'Name!' ] },
   'SELECT COUNT(*) FROM test;'
 ], function(error, results) {
   if (error) {
