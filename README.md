@@ -81,7 +81,7 @@ db.parallel([
 db.parallel(
   'SELECT COUNT(*) FROM test;',
   { text: 'SELECT * FROM test WHERE id = $1::int;', values: [ 1 ] },
-  'SELECT * FROM test;'
+  'SELECT * FROM test;',
   function(error, results) {
     if (error) {
       return console.error(error);
