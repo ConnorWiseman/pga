@@ -76,6 +76,20 @@ db.parallel([
 });
 ```
 
+`pga` also accepts comma-separated queries and optional callback functions for parallel queries if passing in an array is too unwieldy:
+```javascript
+db.parallel(
+  'SELECT COUNT(*) FROM test;',
+  { text: 'SELECT * FROM test WHERE id = $1::int;', values: [ 1 ] },
+  'SELECT * FROM test;'
+  function(error, results) {
+    if (error) {
+      return console.error(error);
+    }
+    console.log(results);
+  });
+```
+
 
 ### &#35;query
 Performs a single parameterized query. An alias for `Pool.query`.
@@ -141,6 +155,20 @@ db.transact([
 }).catch(function(error) {
   console.error(error);
 });
+```
+
+`pga` also accepts comma-separated queries and optional callback functions for transactions if passing in an array is too unwieldy:
+```javascript
+db.transact(
+  'SELECT COUNT(*) FROM test;',
+  { text: 'INSERT INTO test (name) VALUES ($1:text);', values: [ 'Name!' ] },
+  'SELECT COUNT(*) FROM test;',
+  function(error, results) {
+    if (error) {
+      return console.error(error);
+    }
+    console.log(results);
+  });
 ```
 
 ## Extras

@@ -45,6 +45,39 @@ function multiple(pool, fn, queries, callback) {
 
 
 /**
+ * Normalizes arguments passed to any of the pga methods that handle multiple
+ * queries- parallel or transact.
+ * @param  {Array} args [description]
+ * @return {Object}
+ * @private
+ */
+function normalize(args) {
+  let result = {
+    queries: null,
+    callback: null
+  };
+
+  if (args.length == 1 && Array.isArray(args[0])) {
+    result.queries = args[0];
+  } else if (args.length == 2 && Array.isArray(args[0])) {
+    result.queries = args[0];
+
+    if (typeof args[1] == 'function') {
+      result.callback = args[1];
+    }
+  } else {
+    result.queries = args;
+
+    if (typeof result.queries[result.queries.length - 1] == 'function') {
+      result.callback = result.queries.pop();
+    }
+  }
+
+  return result;
+};
+
+
+/**
  * Using the specified connection pool, performs a series of specified queries
  * in parallel, executing a specified callback function once all queries have
  * successfully completed.
@@ -200,7 +233,8 @@ module.exports = function makeAdapter(config) {
      *      console.error(error);
      *    });
      */
-    parallel(queries, callback) {
+    parallel(...args) {
+      let { queries, callback } = normalize(args);
       return multiple(pool, performParallel, queries, callback);
     },
 
@@ -289,7 +323,8 @@ module.exports = function makeAdapter(config) {
      *      console.error(error);
      *    });
      */
-    transact(queries, callback) {
+    transact(...args) {
+      let { queries, callback } = normalize(args);
       return multiple(pool, performTransaction, queries, callback);
     }
   };

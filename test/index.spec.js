@@ -102,6 +102,21 @@ describe('PostgreSQLAdapter', function() {
         'SELECT * FROM testing;'
       ], done);
     });
+
+    it('should accept comma-separated arguments and return a Promise', function(done) {
+      db.parallel(
+        'SELECT * FROM testing;',
+        'SELECT * FROM testing;'
+      ).should.be.fulfilled.and.notify(done);
+    });
+
+    it('should accept comma-separated arguments and execute a callback', function(done) {
+      db.parallel(
+        'SELECT * FROM testing;',
+        'SELECT * FROM testing;',
+        done
+      );
+    });
   });
 
   describe('#query', function() {
@@ -223,6 +238,21 @@ describe('PostgreSQLAdapter', function() {
       db.transact([
         'SELECT * FROM testing;'
       ], done);
+    });
+
+    it('should accept comma-separated arguments and return a Promise', function(done) {
+      db.transact(
+        'SELECT * FROM testing;',
+        'SELECT * FROM testing;'
+      ).should.be.fulfilled.and.notify(done);
+    });
+
+    it('should accept comma-separated arguments and execute a callback', function(done) {
+      db.transact(
+        'SELECT * FROM testing;',
+        'SELECT * FROM testing;',
+        done
+      );
     });
   });
 });
