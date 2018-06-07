@@ -173,3 +173,4 @@ db.transact(
 
 ## Extras
 * [pga-sql](https://github.com/ConnorWiseman/pga-sql) for cleaner parameterized queries
+* [pga-pubsub](https://github.com/ConnorWiseman/pga-pubsub) for PostgreSQL LISTEN/NOTIFY
